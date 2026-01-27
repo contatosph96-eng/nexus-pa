@@ -1,27 +1,28 @@
-// CONFIGURAÇÃO DO FIREBASE (DADOS DO SEU PROJETO)
+// CONFIGURAÇÃO DO SEU NOVO FIREBASE OFICIAL
 const firebaseConfig = {
     apiKey: "AIzaSyC-EARkRRo1YIBMCdF0rr55qaPJKJLci7A",
-    authDomain: "nexus-pa.firebaseapp.com",
-    databaseURL: "https://nexus-pa-default-rtdb.firebaseio.com/",
-    projectId: "nexus-pa",
-    storageBucket: "nexus-pa.firebasestorage.app",
+    authDomain: "nexus-pa-oficial.firebaseapp.com",
+    databaseURL: "https://nexus-pa-oficial-default-rtdb.firebaseio.com/",
+    projectId: "nexus-pa-oficial",
+    storageBucket: "nexus-pa-oficial.firebasestorage.app",
     messagingSenderId: "271862687743",
     appId: "1:271862687743:web:322598b6985d58f1a6a9ca"
 };
 
-// Inicializar Firebase
+// Inicializa o Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 const MASTER_USER = "neguedri";
 const MASTER_PASS = "@Vinte812";
 
-// Bancos de Dados (Agora sincronizados com Firebase)
+// Variáveis de controle sincronizadas com a nuvem
 let atendimentos = [];
 let usuarios = [];
 let lixeira = [];
 
-// --- FUNÇÃO DE SINCRONIZAÇÃO EM TEMPO REAL ---
+// --- 1. SINCRONIZAÇÃO EM TEMPO REAL ---
+// Esta função monitora o Firebase. Se mudar no seu Mac, muda no PC da Andriely na hora.
 db.ref('nexus').on('value', (snapshot) => {
     const data = snapshot.val();
     if (data) {
@@ -29,14 +30,17 @@ db.ref('nexus').on('value', (snapshot) => {
         usuarios = data.usuarios || [];
         lixeira = data.lixeira || [];
         
-        // Atualiza a interface toda vez que os dados mudarem na nuvem
         renderizarAtendimentos();
         renderizarUsuarios();
         renderizarLixeira();
+    } else {
+        // Se o banco estiver zerado (primeiro acesso do banco novo)
+        // Criamos o mestre para você conseguir logar pela primeira vez
+        usuarios = [{ id: 1, email: MASTER_USER, pass: MASTER_PASS }];
+        salvarDadosNexus();
     }
 });
 
-// Função para salvar tudo na nuvem
 function salvarDadosNexus() {
     db.ref('nexus').set({
         atendimentos: atendimentos,
@@ -45,7 +49,7 @@ function salvarDadosNexus() {
     });
 }
 
-// 1. SISTEMA DE LOGIN
+// --- 2. SISTEMA DE LOGIN ---
 document.getElementById('login-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const u = document.getElementById('login-user').value;
@@ -60,10 +64,12 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
             if(btnEq) btnEq.style.display = 'none';
         }
         iniciarRelogio();
-    } else { alert("Acesso Negado."); }
+    } else { 
+        alert("Acesso Negado. Verifique usuário e senha."); 
+    }
 });
 
-// 2. SALVAR/EDITAR PROCESSO
+// --- 3. SALVAR/EDITAR PROCESSO ---
 document.getElementById('relatorio-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const id = document.getElementById('edit-id').value;
@@ -90,7 +96,7 @@ document.getElementById('relatorio-form').addEventListener('submit', (e) => {
     toggleForm();
 });
 
-// 3. SISTEMA DE RECICLAGEM
+// --- 4. SISTEMA DE RECICLAGEM ---
 function moverParaLixeira() {
     const id = document.getElementById('edit-id').value;
     if (!id) return;
@@ -130,13 +136,13 @@ function restaurar(id) {
 }
 
 function apagarDefinitivo(id) {
-    if (confirm("ATENÇÃO: Deseja excluir permanentemente da base Nexus?")) {
+    if (confirm("Deseja excluir permanentemente?")) {
         lixeira = lixeira.filter(a => a.id !== id);
         salvarDadosNexus();
     }
 }
 
-// 4. GESTÃO DE EQUIPE
+// --- 5. GESTÃO DE EQUIPE ---
 document.getElementById('user-form').addEventListener('submit', (e) => {
     e.preventDefault();
     usuarios.push({ id: Date.now(), email: document.getElementById('user-email').value, pass: document.getElementById('user-pass').value });
@@ -151,17 +157,10 @@ function renderizarUsuarios() {
         <li class="user-item">
             <span><strong>${u.email}</strong></span>
             <div style="display:flex; gap:5px;">
-                <button class="edit-user-btn" onclick="edtSenha(${u.id})"><i class="fas fa-key"></i></button>
                 <button class="delete-btn" onclick="remUser(${u.id})"><i class="fas fa-trash"></i></button>
             </div>
         </li>
     `).join('');
-}
-
-function edtSenha(id) {
-    const u = usuarios.find(x => x.id === id);
-    const n = prompt("Nova senha para " + u.email + ":");
-    if (n) { u.pass = n; salvarDadosNexus(); }
 }
 
 function remUser(id) {
@@ -171,13 +170,7 @@ function remUser(id) {
     }
 }
 
-// 5. INTERFACE E DINÂMICA
-function toggleCamposStatus() {
-    const s = document.getElementById('status').value;
-    const campoP = document.getElementById('detalhespendencia');
-    if (campoP) campoP.style.display = (s === 'Pendente' ? 'block' : 'none');
-}
-
+// --- 6. INTERFACE E DINÂMICA ---
 function renderizarAtendimentos() {
     const busca = document.getElementById('busca').value.toLowerCase();
     const filt = atendimentos.filter(a => a.cliente.toLowerCase().includes(busca) || a.servico.toLowerCase().includes(busca));
@@ -212,6 +205,12 @@ function editarProcesso(id) {
     toggleCamposStatus();
 }
 
+function toggleCamposStatus() {
+    const s = document.getElementById('status').value;
+    const campoP = document.getElementById('detalhespendencia');
+    if (campoP) campoP.style.display = (s === 'Pendente' ? 'block' : 'none');
+}
+
 function toggleForm() {
     const f = document.getElementById('relatorio-form');
     f.style.display = (f.style.display === 'none' ? 'block' : 'none');
@@ -230,5 +229,11 @@ function showTab(t) {
     if (event && event.currentTarget) event.currentTarget.classList.add('active');
 }
 
-function iniciarRelogio() { setInterval(() => { const r = document.getElementById('relogio'); if(r) r.innerText = new Date().toLocaleString('pt-BR'); }, 1000); }
+function iniciarRelogio() { 
+    setInterval(() => { 
+        const r = document.getElementById('relogio'); 
+        if(r) r.innerText = new Date().toLocaleString('pt-BR'); 
+    }, 1000); 
+}
+
 function logout() { location.reload(); }
