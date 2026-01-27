@@ -1,0 +1,108 @@
+/* mobile.css - Este arquivo força o layout de celular */
+
+/* 1. Reset de Dashboard: Transforma as 2 colunas em 1 */
+.dashboard {
+    display: block !important; 
+    grid-template-columns: 1fr !important;
+}
+
+/* 2. Menu Superior: Transforma a Sidebar lateral em barra no topo */
+.sidebar {
+    width: 100% !important;
+    height: 70px !important;
+    padding: 10px !important;
+    position: sticky !important;
+    top: 0;
+    z-index: 1000;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-around !important;
+    border-right: none !important;
+    border-bottom: 2px solid var(--primary) !important;
+}
+
+/* Esconde o texto da Logo e dos botões para caber no celular */
+.logo { display: none !important; }
+
+nav {
+    display: flex !important;
+    flex-direction: row !important;
+    width: 100% !important;
+    justify-content: space-between !important;
+    gap: 5px !important;
+}
+
+.nav-btn {
+    padding: 10px !important;
+    margin-bottom: 0 !important;
+    flex: 1 !important;
+    justify-content: center !important;
+    font-size: 1.4rem !important; /* Ícones grandes para o dedo */
+}
+
+.nav-btn span { display: none !important; } /* Esconde o texto, deixa só ícone */
+
+/* 3. Ajustes de Conteúdo e Espaçamento */
+.content {
+    padding: 15px !important;
+    width: 100% !important;
+}
+
+.main-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+}
+
+/* 4. Formulário: Coloca os campos um embaixo do outro */
+.grid-inputs {
+    grid-template-columns: 1fr !important; /* Força 1 coluna */
+    gap: 10px !important;
+}
+
+.glass-form {
+    padding: 15px !important;
+}
+
+input, select, textarea {
+    font-size: 16px !important; /* Evita que o iPhone dê zoom automático */
+}
+
+/* 5. Pastilhas: Cards em largura total */
+.process-grid {
+    grid-template-columns: 1fr !important;
+}
+
+.pastilha {
+    padding: 20px !important;
+    margin-bottom: 10px !important;
+}
+
+/* 6. Botões: Facilita o clique no celular */
+.add-btn {
+    width: 100% !important;
+    padding: 18px !important;
+    font-size: 1.1rem !important;
+}
+
+.form-actions {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+}
+
+/* 7. Sobre Mim: Ajusta a imagem e o texto */
+.about-card {
+    padding: 30px 15px !important;
+}
+
+.creator-img {
+    width: 130px !important;
+    height: 130px !important;
+    margin-top: 10px !important; /* Ajuste específico para mobile */
+}
+
+#logozap {
+    font-size: 20px !important; color: aliceblue;
+}

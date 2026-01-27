@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nexus P.A | Gestão Jurídica</title>
+        
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0b0f19">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="criador.jpeg">
+
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@400;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="mobile.css" media="screen and (max-width: 768px)">
+</head>
+<body>
+
+    <div id="login-screen" class="overlay">
+        <div class="login-card">
+            <i class="fas fa-shield-halved fa-3x" style="color: var(--primary); margin-bottom: 20px;"></i>
+            <h2>NEXUS <span style="color: var(--primary);">P.A</span></h2>
+            <h3 id="subtitulo">Controle de Fluxo Jurídico</h3>
+            <p id="acess">Acesso Restrito</p>
+
+            <form id="login-form">
+                <input type="text" id="login-user" placeholder="Usuário" required>
+                <input type="password" id="login-pass" placeholder="Senha" required>
+                <button type="submit" class="submit-btn">Entrar no Sistema</button>
+            </form>
+            <div class="login-footer">
+                <p>Suporte Técnico? <a href="https://wa.me/5533998544278" target="_blank"><i id="logozap" class="fab fa-whatsapp"></i></a></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-panel" class="dashboard" style="display: none;">
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fas fa-network-wired"></i> NEXUS <span style="color: var(--primary);">P.A</span>
+            </div>
+            <nav>
+                <button class="nav-btn active" onclick="showTab('atendimentos')">
+                    <i class="fas fa-folder-tree"></i> <span>Processos</span>
+                </button>
+                <button class="nav-btn" id="btn-admin-usuarios" onclick="showTab('usuarios')">
+                    <i class="fas fa-users-gear"></i> <span>Equipe</span>
+                </button>
+                <button class="nav-btn" onclick="showTab('lixeira')">
+                    <i class="fas fa-trash-can"></i> <span>Reciclagem</span>
+                </button>
+                <button class="nav-btn" onclick="showTab('sobre')">
+                    <i class="fas fa-circle-info"></i> <span>Sobre</span>
+                </button>
+                <button class="nav-btn logout" onclick="logout()">
+                    <i class="fas fa-right-from-bracket"></i> <span>Sair</span>
+                </button>
+            </nav>
+        </aside>
+
+        <main class="content">
+            <section id="tab-atendimentos" class="tab-content active">
+                <header class="main-header">
+                    <h2><i class="fas fa-scale-balanced"></i> Painel de Controle</h2>
+                    <div id="relogio"></div>
+                </header>
+
+                <button onclick="toggleForm()" class="add-btn"><i class="fas fa-plus"></i> Novo Protocolo</button>
+                
+                <form id="relatorio-form" class="glass-form" style="display: none;">
+                    <input type="hidden" id="edit-id">
+                    <div id="edit-timestamp" class="timestamp-label"></div>
+                    
+                    <div class="grid-inputs">
+                        <input type="text" id="cliente" placeholder="Cliente / Requerente">
+                        <input type="text" id="servico" placeholder="Nº do Processo">
+                    </div>
+                    
+                    <div class="grid-inputs large-selects">
+                        <select id="status" onchange="toggleCamposStatus()">
+                            <option value="Pendente">⏳ PENDENTE</option>
+                            <option value="Concluído">✅ ARQUIVADO</option>
+                        </select>
+                        <input type="text" id="categoria" placeholder="Ramo do Direito">
+                    </div>
+                    
+                    <textarea id="detalhespendencia" placeholder="Motivo da Pendencia..."></textarea>
+                    <textarea id="detalhes" placeholder="Andamento jurídico geral..."></textarea>
+
+                    <div class="form-actions">
+                        <button type="submit" id="btn-salvar" class="btn-acao salvar">
+                            <i class="fas fa-check"></i> Salvar
+                        </button>
+                        <button type="button" id="btn-excluir-processo" class="btn-acao excluir" style="display: none;">
+                            <i class="fas fa-trash-alt"></i> Lixeira
+                        </button>
+                        <button type="button" onclick="toggleForm()" class="btn-acao cancelar">
+                            <i class="fas fa-xmark"></i> Sair
+                        </button>
+                    </div>
+                </form>
+
+                <div class="search-bar">
+                    <input type="text" id="busca" placeholder="🔍 Pesquisar processo..." oninput="renderizarAtendimentos()">
+                </div>
+
+                <div class="section-divider"><h3>CASOS EM ANDAMENTO</h3></div>
+                <div id="grid-pendentes" class="process-grid"></div>
+
+                <div class="section-divider"><h3>FINALIZADOS</h3></div>
+                <div id="grid-concluidos" class="process-grid"></div>
+            </section>
+
+            <section id="tab-lixeira" class="tab-content">
+                <header class="main-header">
+                    <h2><i class="fas fa-trash-can"></i> Reciclagem</h2>
+                </header>
+                <div class="section-divider"><h3>ITENS EXCLUÍDOS</h3></div>
+                <div id="grid-lixeira" class="process-grid"></div>
+            </section>
+
+            <section id="tab-usuarios" class="tab-content">
+                <header class="main-header">
+                    <h2><i class="fas fa-user-shield"></i> Gestão de Equipe</h2>
+                </header>
+                <div class="user-container">
+                    <form id="user-form" class="glass-form">
+                        <h3>Novo Colaborador</h3>
+                        <div class="grid-inputs">
+                            <input type="text" id="user-email" placeholder="Usuário/Email" required>
+                            <input type="password" id="user-pass" placeholder="Senha" required>
+                        </div>
+                        <button type="submit" class="submit-btn">Cadastrar Advogado</button>
+                    </form>
+                    <div class="user-list-card">
+                        <h3>Advogados Ativos</h3>
+                        <ul id="lista-usuarios"></ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-sobre" class="tab-content">
+                <div class="about-card">
+                    <img src="criador.jpeg" alt="Paulo Henrique" class="creator-img">
+                    <h4>Paulo Henrique Felipes de Paula</h4>
+                    <p>Arquiteto do Sistema & Desenvolvedor Front-End</p>
+                    <a href="https://wa.me/5533998544278" class="contact-btn" target="_blank">Suporte Direto</a>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

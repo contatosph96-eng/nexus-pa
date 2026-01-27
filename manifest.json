@@ -1,0 +1,18 @@
+{
+  "short_name": "Nexus P.A",
+  "name": "Nexus P.A - Gestão Jurídica",
+  "description": "Sistema de Gestão Processual Paulo & Andriely",
+  "icons": [
+    {
+      "src": "criador.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#0b0f19",
+  "background_color": "#0b0f19",
+  "orientation": "portrait-primary"
+}
