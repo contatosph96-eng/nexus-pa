@@ -1,10 +1,49 @@
+// CONFIGURAÇÃO DO FIREBASE (DADOS DO SEU PROJETO)
+const firebaseConfig = {
+    apiKey: "AIzaSyC-EARkRRo1YIBMCdF0rr55qaPJKJLci7A",
+    authDomain: "nexus-pa.firebaseapp.com",
+    databaseURL: "https://nexus-pa-default-rtdb.firebaseio.com/",
+    projectId: "nexus-pa",
+    storageBucket: "nexus-pa.firebasestorage.app",
+    messagingSenderId: "271862687743",
+    appId: "1:271862687743:web:322598b6985d58f1a6a9ca"
+};
+
+// Inicializar Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
 const MASTER_USER = "neguedri";
 const MASTER_PASS = "@Vinte812";
 
-// Bancos de Dados Locais
-let atendimentos = JSON.parse(localStorage.getItem('nexus_atendimentos')) || [];
-let usuarios = JSON.parse(localStorage.getItem('nexus_usuarios')) || [];
-let lixeira = JSON.parse(localStorage.getItem('nexus_lixeira')) || [];
+// Bancos de Dados (Agora sincronizados com Firebase)
+let atendimentos = [];
+let usuarios = [];
+let lixeira = [];
+
+// --- FUNÇÃO DE SINCRONIZAÇÃO EM TEMPO REAL ---
+db.ref('nexus').on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+        atendimentos = data.atendimentos || [];
+        usuarios = data.usuarios || [];
+        lixeira = data.lixeira || [];
+        
+        // Atualiza a interface toda vez que os dados mudarem na nuvem
+        renderizarAtendimentos();
+        renderizarUsuarios();
+        renderizarLixeira();
+    }
+});
+
+// Função para salvar tudo na nuvem
+function salvarDadosNexus() {
+    db.ref('nexus').set({
+        atendimentos: atendimentos,
+        usuarios: usuarios,
+        lixeira: lixeira
+    });
+}
 
 // 1. SISTEMA DE LOGIN
 document.getElementById('login-form').addEventListener('submit', (e) => {
@@ -20,14 +59,11 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
             const btnEq = document.getElementById('btn-admin-usuarios');
             if(btnEq) btnEq.style.display = 'none';
         }
-        renderizarAtendimentos();
-        renderizarUsuarios();
-        renderizarLixeira();
         iniciarRelogio();
     } else { alert("Acesso Negado."); }
 });
 
-// 2. SALVAR/EDITAR PROCESSO (CORRIGIDO)
+// 2. SALVAR/EDITAR PROCESSO
 document.getElementById('relatorio-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const id = document.getElementById('edit-id').value;
@@ -44,17 +80,14 @@ document.getElementById('relatorio-form').addEventListener('submit', (e) => {
     };
 
     if (id) {
-        // MODO EDIÇÃO: Substitui o item correto no array
         const index = atendimentos.findIndex(a => a.id === parseInt(id));
         if (index !== -1) atendimentos[index] = dados;
     } else {
-        // MODO NOVO: Adiciona um novo item
         atendimentos.push(dados);
     }
 
-    localStorage.setItem('nexus_atendimentos', JSON.stringify(atendimentos));
+    salvarDadosNexus();
     toggleForm();
-    renderizarAtendimentos();
 });
 
 // 3. SISTEMA DE RECICLAGEM
@@ -67,11 +100,8 @@ function moverParaLixeira() {
         if (index !== -1) {
             const removido = atendimentos.splice(index, 1)[0];
             lixeira.push(removido);
-            localStorage.setItem('nexus_atendimentos', JSON.stringify(atendimentos));
-            localStorage.setItem('nexus_lixeira', JSON.stringify(lixeira));
+            salvarDadosNexus();
             toggleForm();
-            renderizarAtendimentos();
-            renderizarLixeira();
         }
     }
 }
@@ -95,18 +125,14 @@ function restaurar(id) {
     const idx = lixeira.findIndex(a => a.id === id);
     if (idx !== -1) {
         atendimentos.push(lixeira.splice(idx, 1)[0]);
-        localStorage.setItem('nexus_atendimentos', JSON.stringify(atendimentos));
-        localStorage.setItem('nexus_lixeira', JSON.stringify(lixeira));
-        renderizarAtendimentos();
-        renderizarLixeira();
+        salvarDadosNexus();
     }
 }
 
 function apagarDefinitivo(id) {
     if (confirm("ATENÇÃO: Deseja excluir permanentemente da base Nexus?")) {
         lixeira = lixeira.filter(a => a.id !== id);
-        localStorage.setItem('nexus_lixeira', JSON.stringify(lixeira));
-        renderizarLixeira();
+        salvarDadosNexus();
     }
 }
 
@@ -114,9 +140,8 @@ function apagarDefinitivo(id) {
 document.getElementById('user-form').addEventListener('submit', (e) => {
     e.preventDefault();
     usuarios.push({ id: Date.now(), email: document.getElementById('user-email').value, pass: document.getElementById('user-pass').value });
-    localStorage.setItem('nexus_usuarios', JSON.stringify(usuarios));
+    salvarDadosNexus();
     e.target.reset();
-    renderizarUsuarios();
 });
 
 function renderizarUsuarios() {
@@ -136,14 +161,13 @@ function renderizarUsuarios() {
 function edtSenha(id) {
     const u = usuarios.find(x => x.id === id);
     const n = prompt("Nova senha para " + u.email + ":");
-    if (n) { u.pass = n; localStorage.setItem('nexus_usuarios', JSON.stringify(usuarios)); renderizarUsuarios(); }
+    if (n) { u.pass = n; salvarDadosNexus(); }
 }
 
 function remUser(id) {
     if (confirm("Remover acesso deste colaborador?")) { 
         usuarios = usuarios.filter(x => x.id !== id); 
-        localStorage.setItem('nexus_usuarios', JSON.stringify(usuarios)); 
-        renderizarUsuarios(); 
+        salvarDadosNexus(); 
     }
 }
 
